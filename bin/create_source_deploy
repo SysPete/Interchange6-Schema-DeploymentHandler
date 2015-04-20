@@ -1,0 +1,102 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+use Carp;
+use Class::Unload;
+use Data::Dumper::Concise;
+use FindBin;
+use Git;
+use Try::Tiny;
+use mro 'c3';
+use version 0.77;
+use aliased 'DBIx::Class::DeploymentHandler' => 'DH';
+
+my $ic6s_git         = "https://github.com/interchange/interchange6-schema.git";
+my $ic6_lib          = "$FindBin::Bin/../git/interchange6-schema/lib";
+my $script_directory = "$FindBin::Bin/../dbicdh";
+
+unshift @INC, $ic6_lib;
+
+# no point going back too far since first live shop is > 0.05
+my $min_version = version->parse("0.050");
+
+# clone/pull ic6s
+chdir "$FindBin::Bin/.." or die "chdir failed";
+mkdir "git" or die "mkdir git failed" unless -d "git";
+chdir "git" or die "chdir git failed";
+if ( !-d "interchange6-schema" ) {
+
+    # how to do this via Git?
+    exec( "git", "clone", $ic6s_git ) or die "git clone failed";
+}
+my $repo = Git->repository( Directory => "interchange6-schema" );
+$repo->command( [ "checkout", "master" ], { STDERR => 0 } );
+$repo->command_oneline( [ "pull", "origin", "master" ], { STDERR => 0 } );
+
+# get non-dev releases
+my @tags = grep { /^v\d+\.\d+$/ && version->parse($_) >= $min_version }
+  $repo->command( "tag", "-l" );
+
+# spin through releases
+TAG:
+foreach my $tag (@tags) {
+
+    (my $version = $tag ) =~ s/^v//;
+
+    if ( -f "$script_directory/_source/deploy/$version/001-auto.yml" ) {
+        print "Skipping already created version $version\n";
+        next TAG;
+    }
+
+    print "Checking out $tag\n";
+    $repo->command( [ "checkout", $tag ], { STDERR => 0 } );
+
+    # clean out Interchange6::Schema namespace from previous loop iteration
+    my @classes =
+      sort { $b cmp $a }
+      grep { /^Interchange6::Schema/ } @{ mro::get_isarev("DBIx::Class") };
+    foreach my $class (@classes) {
+        Class::Unload->unload($class);
+    }
+
+    # perhaps some old schemas are broken under our DBIx::Class release?
+    eval { require Interchange6::Schema; };
+    if ($@) {
+        print "Cannot load $tag: $@";
+        next;
+    }
+
+    # now we're safe to import
+    Interchange6::Schema->import;
+
+    # but we want to make sure we get only the classes from our git tag
+    sub Interchange6::Schema::_findallmod {
+        require Module::Find;
+        Module::Find::setmoduledirs($ic6_lib);
+        return map { $_ =~ /(.+)/ }    # untaint result
+          Module::Find::findallmod( $_[1] || ref $_[0] || $_[0] );
+    }
+
+    my $schema = Interchange6::Schema->connect(
+        "dbi:SQLite::memory:",
+        undef, undef,
+        {
+            sqlite_unicode  => 1,
+            on_connect_call => 'use_foreign_keys',
+            quote_names     => 1,
+        }
+    );
+
+    my $dh = DH->new(
+        {
+            schema           => $schema,
+            script_directory => $script_directory,
+
+            #            databases           => 'PostgreSQL',
+            sql_translator_args => { add_drop_table => 0 },
+        }
+    );
+
+    $dh->prepare_deploy;
+}
