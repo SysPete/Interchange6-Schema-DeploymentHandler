@@ -1,0 +1,9 @@
+^\.git\/
+^.*\.tar.gz$
+^.*.bak
+^.*.old
+.gitignore
+.travis.yml
+git
+MANIFEST.SKIP
+bin/make_it_fly
