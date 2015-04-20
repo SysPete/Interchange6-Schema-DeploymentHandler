@@ -759,6 +759,8 @@ schema:
       options: []
       order: 6
     inventories:
+      extra:
+        renamed_from: inventory
       constraints:
         - deferrable: 1
           expression: ''
@@ -778,6 +780,8 @@ schema:
             - sku
           match_type: ''
           name: inventories_fk_sku
+          extra:
+            renamed_from: inventory_fk_sku
           on_delete: CASCADE
           on_update: CASCADE
           options: []
@@ -1017,6 +1021,8 @@ schema:
             - type
           match_type: ''
           name: media_types_type
+          extra:
+            renamed_from: media_types_type_key
           on_delete: ''
           on_update: ''
           options: []
@@ -1050,6 +1056,8 @@ schema:
       options: []
       order: 10
     medias:
+      extra:
+        renamed_from: media
       constraints:
         - deferrable: 1
           expression: ''
@@ -1082,6 +1090,8 @@ schema:
             - file
           match_type: ''
           name: medias_file
+          extra:
+            renamed_from: media_file_unique
           on_delete: ''
           on_update: ''
           options: []
@@ -1094,6 +1104,8 @@ schema:
             - author_users_id
           match_type: ''
           name: medias_fk_author_users_id
+          extra:
+            renamed_from: media_fk_author_users_id
           on_delete: ''
           on_update: ''
           options: []
@@ -1107,6 +1119,8 @@ schema:
             - media_types_id
           match_type: ''
           name: medias_fk_media_types_id
+          extra:
+            renamed_from: media_fk_media_types_id
           on_delete: CASCADE
           on_update: CASCADE
           options: []
@@ -1220,11 +1234,15 @@ schema:
         - fields:
             - author_users_id
           name: medias_idx_author_users_id
+          extra:
+            renamed_from: media_idx_author_users_id
           options: []
           type: NORMAL
         - fields:
             - media_types_id
           name: medias_idx_media_types_id
+          extra:
+            renamed_from: media_idx_media_types_id
           options: []
           type: NORMAL
       name: medias
@@ -1424,6 +1442,8 @@ schema:
             - name
           match_type: ''
           name: message_types_name
+          extra:
+            renamed_from: message_types_name_unique
           on_delete: ''
           on_update: ''
           options: []
@@ -3078,6 +3098,8 @@ schema:
       options: []
       order: 21
     price_modifiers:
+      extra:
+        renamed_from: group_pricing
       constraints:
         - deferrable: 1
           expression: ''
@@ -3097,6 +3119,8 @@ schema:
             - sku
           match_type: ''
           name: price_modifiers_fk_sku
+          extra:
+            renamed_from: group_pricing_fk_sku
           on_delete: CASCADE
           on_update: CASCADE
           options: []
@@ -3110,6 +3134,8 @@ schema:
             - roles_id
           match_type: ''
           name: price_modifiers_fk_roles_id
+          extra:
+            renamed_from: group_pricing_fk_roles_id
           on_delete: CASCADE
           on_update: CASCADE
           options: []
@@ -3140,6 +3166,8 @@ schema:
             - 10
             - 2
         price_modifiers_id:
+          extra:
+            renamed_from: group_pricing_id
           data_type: integer
           default_value: ~
           is_auto_increment: 1
@@ -3196,11 +3224,15 @@ schema:
           name: price_modifiers_idx_sku
           options: []
           type: NORMAL
+          extra:
+            renamed_from: group_pricing_idx_sku
         - fields:
             - roles_id
           name: price_modifiers_idx_roles_id
           options: []
           type: NORMAL
+          extra:
+            renamed_from: group_pricing_idx_roles_id
       name: price_modifiers
       options: []
       order: 22
