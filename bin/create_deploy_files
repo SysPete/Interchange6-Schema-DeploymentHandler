@@ -7,7 +7,6 @@ use Class::Unload;
 use Data::Dumper::Concise;
 use FindBin;
 use Git;
-use Try::Tiny;
 use mro 'c3';
 use version 0.77;
 use aliased 'DBIx::Class::DeploymentHandler' => 'DH';
@@ -63,7 +62,7 @@ foreach my $tag (@tags) {
     # perhaps some old schemas are broken under our DBIx::Class release?
     eval { require Interchange6::Schema; };
     if ($@) {
-        print "Cannot load $tag: $@";
+        print "Skipping $tag since DBIC cannot load it\n";
         next;
     }
 
