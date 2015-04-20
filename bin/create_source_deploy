@@ -46,7 +46,7 @@ foreach my $tag (@tags) {
 
     if ( -f "$script_directory/_source/deploy/$version/001-auto.yml" ) {
         print "Skipping already created version $version\n";
-        #next TAG;
+        next TAG;
     }
 
     print "Checking out $tag\n";
@@ -94,7 +94,6 @@ foreach my $tag (@tags) {
             script_directory => $script_directory,
             databases           => [ 'MySQL', 'PostgreSQL', 'SQLite' ],
             sql_translator_args => { add_drop_table => 0 },
-            force_overwrite => 1,
         }
     );
 
